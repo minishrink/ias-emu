@@ -16,7 +16,7 @@ Project under construction. Current aims:
     
 ## Architecture
 
-#### AEBI
+## AEBI
 
 Words are 40 bits long, and can be either:
 - a signed value, with 1 sign bit and 39 numeric bits
@@ -24,7 +24,7 @@ Words are 40 bits long, and can be either:
   
 There are no other data types defined at this level.  
 
-#### Instruction Set Architecture
+## Instruction Set Architecture
 
 The instruction set consists of 21 unique instructions, including two undefined behaviour ones.  
 These instructions are largely for simple arithmetic or LOAD/STORE memory operations.  
@@ -32,7 +32,7 @@ These instructions are largely for simple arithmetic or LOAD/STORE memory operat
 An instruction consists of an 8-bit opcode and 12 bits for operands, although not all instructions use all 12 bits.  
 Note that this instruction set includes self-modifying code to rewrite the 12 operand bits of different instructions.  
 
-#### Registers
+## Registers
 
 There are two programmer-facing 40-bit registers:  
 - **AC**: the accumulator, where addition and subtraction results are stored  
@@ -46,7 +46,7 @@ Internal registers include:
 - **IBR (Instruction Buffer Register)**: register holding the next instruction to execute  
 
 
-#### Memory
+## Memory
 
 The memory consists of numeric punch cards which can be loaded, interpreted, and swapped out. 
 One memory card can be loaded at a time, and holds 1000 words.  
