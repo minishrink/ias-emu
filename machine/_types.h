@@ -8,6 +8,9 @@
 
 typedef uint64_t Word;
 
-typedef Word Data;
-typedef Word InstructionPair;
+/* Instructions 20 bits long and are packed in pairs into one word. They will be internally represented with 32-bits */
+typedef uint32_t Instruction;
 
+/* Instructions consist of an 8-bit opcode and a 12-bit address */
+typedef uint16_t Address;
+typedef uint8_t Opcode;
