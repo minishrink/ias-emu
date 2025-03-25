@@ -1,25 +1,13 @@
 #pragma once
+#include <stdint.h>
 
 /** Define word types here **/
 
-/** All these types should be 40 bits long **/
+/** All word in the IAS machine are 40 bits long, which is awkward to emulate on modern architectures
+ *  so they will be implemented as 64-bit words with padding **/
 
-/* This will take some bitfucking */
-typedef struct DataWord {
-  unsigned int sign: 1;
-  unsigned int data31: 31;
-  unsigned int data8: 8;
-} Data;
+typedef uint64_t Word;
 
-typedef struct InstructionWord {
-  unsigned int opcodeL: 8;
-  unsigned int operandsL: 12;
-  unsigned int opcodeR: 8;
-  unsigned int operandsR: 12;
-} InstructionPair;
-
-typedef union Word {
-  Data d;
-  InstructionPair i;
-} Word;
+typedef Word Data;
+typedef Word InstructionPair;
 
