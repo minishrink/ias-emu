@@ -4,7 +4,6 @@
 
 #define MASK_BYTE   (LAST_N_BITS(8))
 #define MASK_HIBYTE (LAST_N_BITS(8) << 56)
-#define MASK_ADDR   (LAST_N_BITS(12))
 #define MASK_LO20  (LAST_N_BITS(20))
 #define MASK_HI20  (LAST_N_BITS(20) << 20)
 #define MASK_LO40  (LAST_N_BITS(40))
