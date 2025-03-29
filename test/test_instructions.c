@@ -2,39 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 
-/** Test asserts **/
-
-#define PRINT_PASS() (printf("\n\033[92mPASSED\033[0m"))
-#define PRINT_FAIL() (printf("\n\033[91mFAILED\033[0m"))
-static uint16_t pass_count = 0u;
-static uint16_t test_count = 0u;
-
-static uint32_t inline _assert(uint32_t _bool) {
-  if (_bool) {
-    PRINT_PASS();
-    ++pass_count;
-  }
-  else {
-    PRINT_FAIL();
-    printf(" -- %d", _bool);
-  }
-  ++test_count;
-  return _bool;
-}
-static void inline _assert_streq(const char* x, const char* y) {
-  if (strcmp(x,y) == 0) {
-    PRINT_PASS();
-    ++pass_count;
-  }
-  else {
-    PRINT_FAIL();
-    printf(" -- %s != %s", x,y);
-  }
-  ++test_count;
-}
-
-#define ASSERT(_b) (_assert(_b))
-#define ASSERT_STREQ(_x, _y) (_assert_streq(_x,_y))
+#include <_assert.h>
 
 /** Instruction data **/
 #define    MASK_MAJOR_OPCODE     (~(uint8_t)7)
@@ -227,7 +195,7 @@ static void run_tests(void) {
     ASSERT(-1 != string_instruction(strbfr, instr.instruction));
     ASSERT_STREQ(strbfr, instr.string);
   }
-  printf("\n\033[1mPassed %3u / %3u\033[0m", pass_count, test_count);
+  END_TEST();
 }
 
 int main(int argc, char** argv) {
