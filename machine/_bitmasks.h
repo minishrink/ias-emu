@@ -11,8 +11,8 @@
 
 /** longword assumed to be 64 bits **/
 
-#define HIBYTE(_longword) ((uint8_t)((_longword & MASK_HIBYTE) >> 56))
-#define LOBYTE(_longword) ((uint8_t)((_longword & MASK_BYTE)))
+#define HIBYTE(_longword) ((_longword & MASK_HIBYTE) >> 56)
+#define LOBYTE(_longword) (_longword & MASK_BYTE)
 #define LO20(_longword)   (_longword & MASK_LO20)
-#define HI20(_longword)   (_longword & MASK_HI20)
+#define HI20(_longword)   ((_longword & MASK_HI20) >> 32)
 #define LO40(_longword)   (_longword & MASK_LO40)

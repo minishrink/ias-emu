@@ -21,14 +21,15 @@
 *  63---------------39----------31-------------------20----------11----------------------0
 */
 #define MASK_ADDR   (LAST_N_BITS(uint32_t,12))
+#define MASK_OPCODE (0xFF << 12)
 
 /** Macros to extract from 40-bit words (stored in uint64_t values) => uint32_t**/
-#define L_INSTR(_word) ((uint32_t)(HI20(_word)>>32)) /* Bits 39 to 20 */
+#define L_INSTR(_word) (HI20(_word)) /* Bits 39 to 20 */
 #define R_INSTR(_word) (LO20(_word)) /* Bits 19 to  0 */
 
 /** Macros to extract from 20-bit instructions, i.e. from a uint32_t **/
-#define OPCODE(_instr)  ((uint8_t)(_instr & (MASK_BYTE << 12)))
-#define ADDRESS(_instr) ((uint16_t)(_instr & MASK_ADDR))
+#define OPCODE(_instr)  ((_instr & MASK_OPCODE) >> 12)
+#define ADDRESS(_instr) (_instr & MASK_ADDR)
 
 /* Macro to pack major opcode into high 5 bits and minor opcode into low 3 bits */
 #define MAJ_OP(_instr) (_instr & (LAST_N_BITS(uint32_t,5) << 15))
