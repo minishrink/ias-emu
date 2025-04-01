@@ -190,6 +190,7 @@ static int32_t inline string_instruction(char* strbfr, uint32_t instr) {
 
 static void run_tests(void) {
   char strbfr[14] = {};
+  START_TEST("Instruction opcodes");
   for (uint32_t i = 0; i < NUM_TV; ++i) {
     const TestInstruction instr = instr_vectors[i];
     ASSERT(-1 != string_instruction(strbfr, instr.instruction));

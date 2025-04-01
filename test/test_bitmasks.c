@@ -6,40 +6,47 @@
 #include <_instructions.h>
 
 static void test_bits(void) {
-  const uint64_t longy = ~(uint64_t)0u;
-  const uint8_t expecc = 0xFF;
-  const uint64_t expected = (uint64_t)0u | expecc;
-
-  START_TEST("Check consts"); {
-    ASSERT_UINTEQ((uint64_t)0xFFFFFFFFFFFFFFFF, longy);
-    ASSERT_UINTEQ(0x00000000000000FF, expected);
-    ASSERT_UINT8(0xFF, expecc);
-  }
-
   START_TEST("Check masks"); {
     const uint32_t lo_instr = 0xfffff;
     const uint64_t hi_instr = (uint64_t)lo_instr << 32;
     const uint64_t dataword = ((uint64_t)1 << 40)-1;
     ASSERT_UINT8(0xFF, MASK_BYTE);
-    ASSERT_UINTEQ(0xFF00000000000000, MASK_HIBYTE);
+    ASSERT_UINT64(0xFF00000000000000, MASK_HIBYTE);
     ASSERT_UINT32(lo_instr, MASK_LO20);
-    ASSERT_UINTEQ(hi_instr, MASK_HI20);
-    ASSERT_UINTEQ(dataword, MASK_LO40);
+    ASSERT_UINT64(hi_instr, MASK_HI20);
+    ASSERT_UINT64(dataword, MASK_LO40);
+    ASSERT_UINT32(0xfff, MASK_ADDR);
   }
 
-  /* Now check bitshuffling */
   START_TEST("Check bitshuffling"); {
-    ASSERT_UINTEQ(HI8(longy), expected);
-    ASSERT_UINTEQ(HIBYTE(longy), expected);
-    ASSERT_UINT8(HIBYTE(longy), expecc);
-    ASSERT_UINT8(LOBYTE(longy), expecc);
-    ASSERT_UINT32(LO20(longy), MASK_LO20);
-    ASSERT_UINTEQ(HI20(longy), MASK_HI20);
+    const uint64_t longword = 0xabcdef00fedcbaf0;
+    ASSERT_UINT64(HIBYTE(longword), 0xab);
+    ASSERT_UINT8(HIBYTE(longword), 0xab);
+    ASSERT_UINT8(LOBYTE(longword), 0xf0);
+    ASSERT_UINT32(LO20(longword), 0xcbaf0);
+    ASSERT_UINT64(HI20(longword), 0xdef00);
   }
-  END_TEST();
+}
+static void test_instruction_macros(void) {
+  START_TEST("Instruction macros"); {   /*  |---L---|---R---| */
+    const uint64_t instruction_pair_word = 0x000faded000babed;
+    const uint32_t instr = 0x000aa0b0; /* In hex, bits [19:12] are nybbles [4:3] */
+    /* Instructions */
+    ASSERT_UINT32(R_INSTR(instruction_pair_word), 0xbabed);
+    ASSERT_UINT32(L_INSTR(instruction_pair_word), 0xfaded);
+    /* Addresses */
+    ASSERT_UINT16(ADDRESS(R_INSTR(instruction_pair_word)), 0xbed);
+    ASSERT_UINT16(ADDRESS(L_INSTR(instruction_pair_word)), 0xded);
+    /* Opcodes */
+    ASSERT_UINT32(0xff000, MASK_OPCODE);
+    ASSERT_UINT32(OPCODE(instr), 0xaa);
+    ASSERT_UINT8(OPCODE(instr), 0xaa);
+  }
 }
 
 int main(int argc, char** argv) {
   test_bits();
+  test_instruction_macros();
+  END_TEST();
   return 0;
 }
