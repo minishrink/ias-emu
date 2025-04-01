@@ -20,20 +20,19 @@
  * ||--- padding ---|| L_opcode ||---- L_address --- || R_opcode || ---- R_address ---- ||
 *  63---------------39----------31-------------------20----------11----------------------0
 */
-#define MASK_ADDR   (LAST_N_BITS(12))
-#define MASK_NYBB   (LAST_N_BITS(4))
+#define MASK_ADDR   (LAST_N_BITS(uint32_t,12))
 
-/** Macros to extract from 40-bit words (stored in uint64_t values) **/
-#define L_INSTR(_word) (HI20(_word)) /* Bits 39 to 20 */
+/** Macros to extract from 40-bit words (stored in uint64_t values) => uint32_t**/
+#define L_INSTR(_word) ((uint32_t)(HI20(_word)>>32)) /* Bits 39 to 20 */
 #define R_INSTR(_word) (LO20(_word)) /* Bits 19 to  0 */
 
-/** Macros to extract from 20-bit instructions **/
-#define OPCODE(_instr)  (_instr & (MASK_BYTE << 12))
-#define ADDRESS(_instr) (_instr & MASK_ADDR)
+/** Macros to extract from 20-bit instructions, i.e. from a uint32_t **/
+#define OPCODE(_instr)  ((uint8_t)(_instr & (MASK_BYTE << 12)))
+#define ADDRESS(_instr) ((uint16_t)(_instr & MASK_ADDR))
 
 /* Macro to pack major opcode into high 5 bits and minor opcode into low 3 bits */
-#define MAJ_OP(_instr) (_instr & ((LAST_N_BITS(5) << 15)
-#define MIN_OP(_instr) (_instr & ((LAST_N_BITS(3) << 12)
+#define MAJ_OP(_instr) (_instr & (LAST_N_BITS(uint32_t,5) << 15))
+#define MIN_OP(_instr) (_instr & (LAST_N_BITS(uint32_t,3) << 12))
 
 /** Opcode categories : found in high 5 bits **/
 typedef enum OpcodeMain {
