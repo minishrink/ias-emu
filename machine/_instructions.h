@@ -20,8 +20,19 @@
  * ||--- padding ---|| L_opcode ||---- L_address --- || R_opcode || ---- R_address ---- ||
 *  63---------------39----------31-------------------20----------11----------------------0
 */
-#define MASK_ADDR   (LAST_N_BITS(uint32_t,12))
-#define MASK_OPCODE (0xFF << 12)
+
+/* uint32_t masks */
+#define MASK_OPCODE       (0xFF000) /* Bits [19:12] */
+#define MASK_ADDR         (0xFFF)   /* Bits [11:0] */
+#define MASK_MAJOR_OPCODE (0xF8000) /* Bits [19:15] */
+#define MASK_MINOR_OPCODE (0x7000)  /* Bits [14:12] */
+
+/* uint32 padding */
+#define    TO_MAJOR_OPCODE(_n) (_n << 15)
+#define    TO_MINOR_OPCODE(_n) (_n << 12)
+/* uint8_t parsing */
+#define GET_MAJOR_OPCODE(_o) ((uint8_t)((_o & MASK_MAJOR_OPCODE) >> 15)) /* From uint32_t */
+#define GET_MINOR_OPCODE(_o) ((uint8_t)((_o & MASK_MINOR_OPCODE) >> 12))
 
 /** Macros to extract from 40-bit words (stored in uint64_t values) => uint32_t**/
 #define L_INSTR(_word) (HI20(_word)) /* Bits 39 to 20 */

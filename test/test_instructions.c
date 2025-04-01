@@ -5,8 +5,24 @@
 #include <_assert.h>
 
 /** Instruction data **/
+#define MASK_OPCODE (0xFF000)
+#define MASK_ADDR (0xFFF)
+/* Extract 8-bit opcode from 32-bit instruction */
+#define GET_OPCODE(_instr)  ((_instr & MASK_OPCODE) >> 12)
+/* Extract 16-bit address from a 32-bit instruction */
+#define GET_ADDRESS(_instr) (_instr & MASK_ADDR)
+
+/* Pack opcode and address together in lowest 20 bits, leaving 12 bits padding *
+ *
+ * ||000000000000| M  |N |  address |
+ * 31------------j----e--b----------0
+ * */
+#define TO_OPCODE(_maj, _min) ((_maj << 3) | _min) /* uint8_t */
+#define TO_INSTRUCTION(_maj, _min, _addr) ((TO_OPCODE(_maj,_min) << 12) | _addr)
+#define NULL_ADDR (0xFFF)
+
 #define    MASK_MAJOR_OPCODE     (0xF8000) /* Bits [19:14] of 32 */
-#define   PARSE_MAJOR_OPCODE(_o) ((uint8_t)((_o & MASK_MAJOR_OPCODE) >> 15)) /* From uint32_t */
+#define   GET_MAJOR_OPCODE(_o) ((uint8_t)((_o & MASK_MAJOR_OPCODE) >> 15)) /* From uint32_t */
 #define    READ_MAJOR_OPCODE(_o) ((_o & 0xF8)>>3)  /* From uint8_t */
 #define      TO_MAJOR_OPCODE(_n) (_n << 15)
 #define LOAD    (0x01)
@@ -29,7 +45,7 @@
 
 #define     MASK_MINOR_OPCODE     (0x7000)
 #define       TO_MINOR_OPCODE(_n) (_n << 12)
-#define    PARSE_MINOR_OPCODE(_o) ((uint8_t)((_o & MASK_MINOR_OPCODE) >> 12))
+#define    GET_MINOR_OPCODE(_o) ((uint8_t)((_o & MASK_MINOR_OPCODE) >> 12))
 #define     READ_MINOR_OPCODE(_o) (_o & 0x7U)
 /* LOAD subcodes */
 #define LDABS    (0x00)
@@ -150,21 +166,6 @@ const char* string_opcode(uint8_t o) {
   return "UNDEF";
 }
 
-#define MASK_OPCODE (0xFF000)
-#define MASK_ADDR (0xFFF)
-/* Extract 8-bit opcode from 32-bit instruction */
-#define GET_OPCODE(_instr)  ((_instr & MASK_OPCODE) >> 12)
-/* Extract 16-bit address from a 32-bit instruction */
-#define GET_ADDRESS(_instr) (_instr & MASK_ADDR)
-
-/* Pack opcode and address together in lowest 20 bits, leaving 12 bits padding *
- *
- * ||000000000000| M  |N |  address |
- * 31------------j----e--b----------0
- * */
-#define TO_OPCODE(_maj, _min) ((_maj << 3) | _min) /* uint8_t */
-#define TO_INSTRUCTION(_maj, _min, _addr) ( (((_maj << 3) | _min) << 12) | _addr)
-#define NULL_ADDR (0xFFF)
 
 /* Addresses range from 0 to 0x3e7 */
 typedef struct TestVector {
@@ -227,19 +228,19 @@ static void test_opcodes(void) {
     ASSERT_UINT32(0x0F << 15, TO_MAJOR_OPCODE(IO));
   }
   START_TEST("Opcode parsing"); {
-    ASSERT_UINT32(SHL,    PARSE_MAJOR_OPCODE(TO_MAJOR_OPCODE(SHL)));
-    ASSERT_UINT32(LOAD,   PARSE_MAJOR_OPCODE(TO_MAJOR_OPCODE(LOAD)));
-    ASSERT_UINT32(MOVE,   PARSE_MAJOR_OPCODE(TO_MAJOR_OPCODE(MOVE)));
-    ASSERT_UINT32(BR_L,   PARSE_MAJOR_OPCODE(TO_MAJOR_OPCODE(BR_L)));
-    ASSERT_UINT32(STORE,  PARSE_MAJOR_OPCODE(TO_MAJOR_OPCODE(STORE)));
-    ASSERT_UINT32(IO,     PARSE_MAJOR_OPCODE(TO_MAJOR_OPCODE(IO)));
+    ASSERT_UINT32(SHL,    GET_MAJOR_OPCODE(TO_MAJOR_OPCODE(SHL)));
+    ASSERT_UINT32(LOAD,   GET_MAJOR_OPCODE(TO_MAJOR_OPCODE(LOAD)));
+    ASSERT_UINT32(MOVE,   GET_MAJOR_OPCODE(TO_MAJOR_OPCODE(MOVE)));
+    ASSERT_UINT32(BR_L,   GET_MAJOR_OPCODE(TO_MAJOR_OPCODE(BR_L)));
+    ASSERT_UINT32(STORE,  GET_MAJOR_OPCODE(TO_MAJOR_OPCODE(STORE)));
+    ASSERT_UINT32(IO,     GET_MAJOR_OPCODE(TO_MAJOR_OPCODE(IO)));
 
-    ASSERT_UINT32(MVABS,  PARSE_MINOR_OPCODE(TO_MINOR_OPCODE(MVABS)));
-    ASSERT_UINT32(LDNEG,  PARSE_MINOR_OPCODE(TO_MINOR_OPCODE(LDNEG)));
-    ASSERT_UINT32(ADD,    PARSE_MINOR_OPCODE(TO_MINOR_OPCODE(ADD)));
-    ASSERT_UINT32(ADDMQ,  PARSE_MINOR_OPCODE(TO_MINOR_OPCODE(ADDMQ)));
-    ASSERT_UINT32(MV,     PARSE_MINOR_OPCODE(TO_MINOR_OPCODE(MV)));
-    ASSERT_UINT32(INCARD, PARSE_MINOR_OPCODE(TO_MINOR_OPCODE(INCARD)));
+    ASSERT_UINT32(MVABS,  GET_MINOR_OPCODE(TO_MINOR_OPCODE(MVABS)));
+    ASSERT_UINT32(LDNEG,  GET_MINOR_OPCODE(TO_MINOR_OPCODE(LDNEG)));
+    ASSERT_UINT32(ADD,    GET_MINOR_OPCODE(TO_MINOR_OPCODE(ADD)));
+    ASSERT_UINT32(ADDMQ,  GET_MINOR_OPCODE(TO_MINOR_OPCODE(ADDMQ)));
+    ASSERT_UINT32(MV,     GET_MINOR_OPCODE(TO_MINOR_OPCODE(MV)));
+    ASSERT_UINT32(INCARD, GET_MINOR_OPCODE(TO_MINOR_OPCODE(INCARD)));
   }
   START_TEST("Minor LOAD opcode shifting"); {
     ASSERT_UINT32(0x00 << 12, TO_MINOR_OPCODE(LDABS));
