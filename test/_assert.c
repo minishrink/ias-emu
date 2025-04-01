@@ -29,7 +29,7 @@ void inline _assert_streq(const char *x, const char *y) {
   }
   ++test_count;
 }
-void inline _assert_uinteq(uint64_t x, uint64_t y) {
+void inline _assert_uint64(uint64_t x, uint64_t y) {
   if (x == y) {
     PRINT_PASS();
     ++pass_count;
@@ -48,6 +48,17 @@ void inline _assert_uint32(uint32_t x, uint32_t y) {
   else {
     PRINT_FAIL();
     printf(" -- %10x != %10x", x,y);
+  }
+  ++test_count;
+}
+void inline _assert_uint16(uint16_t x, uint16_t y) {
+  if (x==y) {
+    PRINT_PASS();
+    ++pass_count;
+  }
+  else {
+    PRINT_FAIL();
+    printf(" -- %10x != %10x", x, y);
   }
   ++test_count;
 }
