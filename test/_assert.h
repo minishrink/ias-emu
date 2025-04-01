@@ -10,7 +10,7 @@ void     _assert_uint64(uint64_t x, uint64_t y);
 void     _assert_uint32(uint32_t x, uint32_t y);
 void     _assert_uint16(uint16_t x, uint16_t y);
 void     _assert_uint8(uint8_t x, uint8_t y);
-void     _print_test_count(void);
+void     _print_test_count(uint8_t end);
 void     _new_test(const char *name);
 
 #define ASSERT(_b) (_assert(_b))
@@ -21,7 +21,7 @@ void     _new_test(const char *name);
 #define ASSERT_UINT8(_x, _y) (_assert_uint8(_x,_y))
 
 #define START_TEST(_name) _new_test(_name)
-#define END_TEST() (_print_test_count())
+#define END_TEST() (_print_test_count(1))
 
 extern uint16_t pass_count;
 extern uint16_t test_count;
