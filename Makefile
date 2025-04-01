@@ -8,7 +8,6 @@ TST=test
 CC=clang
 CFLAGS=-Wall -Werror -std=c17 -Wno-unused-function -g
 INCLUDES=-I$(MAC) -I$(TST) $(TST)/_*.c
-
 EXEC=test.exe
 
 clean:
@@ -26,6 +25,7 @@ build_test_bits:
 test_bits: build_test_bits
 	$(BIN)/$(EXEC)
 
+test: test_instr test_bits
 
 $(OBJ)/%.o: $(SRC)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
