@@ -29,7 +29,7 @@ extern InstrReg IBR;
 /* Current opcode */
 extern OpReg IR;
 
-/* Counter goes up to 1000 */
+/* Word counter goes up to 1000 */
 extern uint16_t PC;
 
 /* Memory fetching register */

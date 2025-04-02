@@ -3,28 +3,11 @@
 #include <string.h>
 
 #include <_assert.h>
+#include <_encoding.h>
 
-/** Instruction data **/
-#define MASK_OPCODE (0xFF000)
-#define MASK_ADDR (0xFFF)
-/* Extract 8-bit opcode from 32-bit instruction */
-#define DEC_OPCODE(_instr)  ((_instr & MASK_OPCODE) >> 12)
-/* Extract 16-bit address from a 32-bit instruction */
-#define DEC_ADDRESS(_instr) (_instr & MASK_ADDR)
+#define READ_MAJOR_OPCODE(_o) ((_o & 0xF8)>>3)  /* From uint8_t */
+#define READ_MINOR_OPCODE(_o) (_o & 7)  /* From uint8_t */
 
-/* Pack opcode and address together in lowest 20 bits, leaving 12 bits padding *
- *
- * ||000000000000| M  |N |  address |
- * 31------------j----e--b----------0
- * */
-#define ENC_OPCODE(_maj, _min) ((_maj << 3) | _min) /* uint8_t */
-#define ENC_INSTRUCTION(_maj, _min, _addr) ((ENC_OPCODE(_maj,_min) << 12) | _addr)
-#define NULL_ADDR (0xFFF)
-
-#define  MASK_MAJOR_OPCODE     (0xF8000) /* Bits [19:14] of 32 */
-#define  DEC_MAJOR_OPCODE(_o)  ((uint8_t)((_o & MASK_MAJOR_OPCODE) >> 15)) /* From uint32_t */
-#define  READ_MAJOR_OPCODE(_o) ((_o & 0xF8)>>3)  /* From uint8_t */
-#define  ENC_MAJOR_OPCODE(_n)  (_n << 15)
 #define LOAD    (0x01)
 #define MUL     (0x02)
 #define DIV     (0x03)
@@ -43,10 +26,6 @@
 
 /* Sub opcodes, paired with certain major opcodes */
 
-#define MASK_MINOR_OPCODE     (0x7000)
-#define ENC_MINOR_OPCODE(_n)  (_n << 12)
-#define DEC_MINOR_OPCODE(_o)  ((uint8_t)((_o & MASK_MINOR_OPCODE) >> 12))
-#define READ_MINOR_OPCODE(_o) (_o & 0x7U)
 /* LOAD subcodes */
 #define LDABS    (0x00)
 #define LD       (0x01)

@@ -20,7 +20,7 @@ test_instr: build_test_instr
 	$(BIN)/$(EXEC)
 
 build_test_bits:
-	$(CC) $(CFLAGS) $(INCLUDES) $(TST)/test_bitmasks.c -o $(BIN)/$(EXEC)
+	$(CC) $(CFLAGS) $(INCLUDES) $(TST)/test_encoding.c -o $(BIN)/$(EXEC)
 
 test_bits: build_test_bits
 	$(BIN)/$(EXEC)

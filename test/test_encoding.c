@@ -2,7 +2,7 @@
 #include <stdint.h>
 
 #include <_assert.h>
-#include <_bitmasks.h>
+#include <_encoding.h>
 #include <_instructions.h>
 
 static void test_bits(void) {
@@ -32,11 +32,11 @@ static void test_instruction_macros(void) {
     const uint64_t instruction_pair_word = 0x000faded000babed;
     const uint32_t instr = 0x000aa0b0; /* In hex, bits [19:12] are nybbles [4:3] */
     /* Instructions */
-    ASSERT_UINT32(R_INSTR(instruction_pair_word), 0xbabed);
-    ASSERT_UINT32(L_INSTR(instruction_pair_word), 0xfaded);
+    ASSERT_UINT32(DEC_R_INSTR(instruction_pair_word), 0xbabed);
+    ASSERT_UINT32(DEC_L_INSTR(instruction_pair_word), 0xfaded);
     /* Addresses */
-    ASSERT_UINT16(DEC_ADDRESS(R_INSTR(instruction_pair_word)), 0xbed);
-    ASSERT_UINT16(DEC_ADDRESS(L_INSTR(instruction_pair_word)), 0xded);
+    ASSERT_UINT16(DEC_ADDRESS(DEC_R_INSTR(instruction_pair_word)), 0xbed);
+    ASSERT_UINT16(DEC_ADDRESS(DEC_L_INSTR(instruction_pair_word)), 0xded);
     /* Opcodes */
     ASSERT_UINT32(0xff000, MASK_OPCODE);
     ASSERT_UINT32(DEC_OPCODE(instr), 0xaa);
