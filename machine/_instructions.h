@@ -28,23 +28,19 @@
 #define MASK_MINOR_OPCODE (0x7000)  /* Bits [14:12] */
 
 /* uint32 padding */
-#define    TO_MAJOR_OPCODE(_n) (_n << 15)
-#define    TO_MINOR_OPCODE(_n) (_n << 12)
+#define ENC_MAJOR_OPCODE(_n) (_n << 15)
+#define ENC_MINOR_OPCODE(_n) (_n << 12)
 /* uint8_t parsing */
-#define GET_MAJOR_OPCODE(_o) ((uint8_t)((_o & MASK_MAJOR_OPCODE) >> 15)) /* From uint32_t */
-#define GET_MINOR_OPCODE(_o) ((uint8_t)((_o & MASK_MINOR_OPCODE) >> 12))
+#define DEC_MAJOR_OPCODE(_o) ((uint8_t)((_o & MASK_MAJOR_OPCODE) >> 15)) /* From uint32_t */
+#define DEC_MINOR_OPCODE(_o) ((uint8_t)((_o & MASK_MINOR_OPCODE) >> 12))
 
 /** Macros to extract from 40-bit words (stored in uint64_t values) => uint32_t**/
 #define L_INSTR(_word) (HI20(_word)) /* Bits 39 to 20 */
 #define R_INSTR(_word) (LO20(_word)) /* Bits 19 to  0 */
 
 /** Macros to extract from 20-bit instructions, i.e. from a uint32_t **/
-#define OPCODE(_instr)  ((_instr & MASK_OPCODE) >> 12)
-#define ADDRESS(_instr) (_instr & MASK_ADDR)
-
-/* Macro to pack major opcode into high 5 bits and minor opcode into low 3 bits */
-#define MAJ_OP(_instr) (_instr & (LAST_N_BITS(uint32_t,5) << 15))
-#define MIN_OP(_instr) (_instr & (LAST_N_BITS(uint32_t,3) << 12))
+#define DEC_OPCODE(_instr)  ((_instr & MASK_OPCODE) >> 12)
+#define DEC_ADDRESS(_instr) (_instr & MASK_ADDR)
 
 /** Opcode categories : found in high 5 bits **/
 typedef enum OpcodeMain {
@@ -64,32 +60,37 @@ typedef enum OpcodeMain {
   _AMOD_L,
   _AMOD_R,
   /* IO instructions to write to program cards */
-  _IO
+  _IO,
+  _MAX_MAJOR_OPCODE
 } OpcodeMain;
 
 /** Minor opcodes : found in lower 3 bits **/
 typedef enum OpcodeMinorLoad {
-  LDABS = 0,
-  LD,
-  LDNEG,
-  ADDABS,
-  SUBABS,
-  ADD,
-  SUB
+  _LDABS = 0,
+  _LD,
+  _LDNEG,
+  _ADDABS,
+  _SUBABS,
+  _ADD,
+  _SUB,
+  _MAX_LOAD_OPCODE
 } OpcodeLoad;
 
 typedef enum OpcodeMinorMove {
-  MVABS = 0,
-  MVNEGABS,
-  MV,
-  MVNEG,
-  ADDMQABS,
-  SUBMQABS,
-  ADDMQ,
-  SUBMQ
+  _MVABS = 0,
+  _MVNEGABS,
+  _MV,
+  _MVNEG,
+  _ADDMQABS,
+  _SUBMQABS,
+  _ADDMQ,
+  _SUBMQ,
+  _MAX_MOVE_OPCODE
 } OpcodeMove;
 
 typedef enum OpcodeMinorIO {
-  INCARD = 0,
-  OUTCARD
+  _INCARD = 0,
+  _OUTCARD,
+  _MAX_IO_OPCODE
 } OpcodeIO;
+

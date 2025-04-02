@@ -35,12 +35,12 @@ static void test_instruction_macros(void) {
     ASSERT_UINT32(R_INSTR(instruction_pair_word), 0xbabed);
     ASSERT_UINT32(L_INSTR(instruction_pair_word), 0xfaded);
     /* Addresses */
-    ASSERT_UINT16(ADDRESS(R_INSTR(instruction_pair_word)), 0xbed);
-    ASSERT_UINT16(ADDRESS(L_INSTR(instruction_pair_word)), 0xded);
+    ASSERT_UINT16(DEC_ADDRESS(R_INSTR(instruction_pair_word)), 0xbed);
+    ASSERT_UINT16(DEC_ADDRESS(L_INSTR(instruction_pair_word)), 0xded);
     /* Opcodes */
     ASSERT_UINT32(0xff000, MASK_OPCODE);
-    ASSERT_UINT32(OPCODE(instr), 0xaa);
-    ASSERT_UINT8(OPCODE(instr), 0xaa);
+    ASSERT_UINT32(DEC_OPCODE(instr), 0xaa);
+    ASSERT_UINT8(DEC_OPCODE(instr), 0xaa);
   }
 }
 

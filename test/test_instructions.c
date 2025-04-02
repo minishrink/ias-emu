@@ -8,23 +8,23 @@
 #define MASK_OPCODE (0xFF000)
 #define MASK_ADDR (0xFFF)
 /* Extract 8-bit opcode from 32-bit instruction */
-#define GET_OPCODE(_instr)  ((_instr & MASK_OPCODE) >> 12)
+#define DEC_OPCODE(_instr)  ((_instr & MASK_OPCODE) >> 12)
 /* Extract 16-bit address from a 32-bit instruction */
-#define GET_ADDRESS(_instr) (_instr & MASK_ADDR)
+#define DEC_ADDRESS(_instr) (_instr & MASK_ADDR)
 
 /* Pack opcode and address together in lowest 20 bits, leaving 12 bits padding *
  *
  * ||000000000000| M  |N |  address |
  * 31------------j----e--b----------0
  * */
-#define TO_OPCODE(_maj, _min) ((_maj << 3) | _min) /* uint8_t */
-#define TO_INSTRUCTION(_maj, _min, _addr) ((TO_OPCODE(_maj,_min) << 12) | _addr)
+#define ENC_OPCODE(_maj, _min) ((_maj << 3) | _min) /* uint8_t */
+#define ENC_INSTRUCTION(_maj, _min, _addr) ((ENC_OPCODE(_maj,_min) << 12) | _addr)
 #define NULL_ADDR (0xFFF)
 
-#define    MASK_MAJOR_OPCODE     (0xF8000) /* Bits [19:14] of 32 */
-#define   GET_MAJOR_OPCODE(_o) ((uint8_t)((_o & MASK_MAJOR_OPCODE) >> 15)) /* From uint32_t */
-#define    READ_MAJOR_OPCODE(_o) ((_o & 0xF8)>>3)  /* From uint8_t */
-#define      TO_MAJOR_OPCODE(_n) (_n << 15)
+#define  MASK_MAJOR_OPCODE     (0xF8000) /* Bits [19:14] of 32 */
+#define  DEC_MAJOR_OPCODE(_o)  ((uint8_t)((_o & MASK_MAJOR_OPCODE) >> 15)) /* From uint32_t */
+#define  READ_MAJOR_OPCODE(_o) ((_o & 0xF8)>>3)  /* From uint8_t */
+#define  ENC_MAJOR_OPCODE(_n)  (_n << 15)
 #define LOAD    (0x01)
 #define MUL     (0x02)
 #define DIV     (0x03)
@@ -43,10 +43,10 @@
 
 /* Sub opcodes, paired with certain major opcodes */
 
-#define     MASK_MINOR_OPCODE     (0x7000)
-#define       TO_MINOR_OPCODE(_n) (_n << 12)
-#define    GET_MINOR_OPCODE(_o) ((uint8_t)((_o & MASK_MINOR_OPCODE) >> 12))
-#define     READ_MINOR_OPCODE(_o) (_o & 0x7U)
+#define MASK_MINOR_OPCODE     (0x7000)
+#define ENC_MINOR_OPCODE(_n)  (_n << 12)
+#define DEC_MINOR_OPCODE(_o)  ((uint8_t)((_o & MASK_MINOR_OPCODE) >> 12))
+#define READ_MINOR_OPCODE(_o) (_o & 0x7U)
 /* LOAD subcodes */
 #define LDABS    (0x00)
 #define LD       (0x01)
@@ -176,17 +176,17 @@ typedef struct TestVector {
 
 #define NUM_TV (6U)
 static const TestInstruction instr_vectors[] = {
-  { .instruction = TO_INSTRUCTION(LOAD,  LD,       0x42),      .opcode=LOAD,  .string = "LD 0x42" },
-  { .instruction = TO_INSTRUCTION(MOVE,  MVNEGABS, 0x2d),      .opcode=MOVE,  .string = "MVNEGABS 0x2d" },
-  { .instruction = TO_INSTRUCTION(IO,    INCARD,   0x2d),      .opcode=IO,    .string = "INCARD 0x2d" },
-  { .instruction = TO_INSTRUCTION(MUL,   0x00,     0x3e5),     .opcode=MUL,   .string = "MUL 0x3e5" },
-  { .instruction = TO_INSTRUCTION(SHL,   0x00,     NULL_ADDR), .opcode=SHL,   .string = "SHL" },
-  { .instruction = TO_INSTRUCTION(STORE, 0x00,     0x30),      .opcode=STORE, .string = "STORE 0x30" },
+  { .instruction = ENC_INSTRUCTION(LOAD,  LD,       0x42),      .opcode=LOAD,  .string = "LD 0x42" },
+  { .instruction = ENC_INSTRUCTION(MOVE,  MVNEGABS, 0x2d),      .opcode=MOVE,  .string = "MVNEGABS 0x2d" },
+  { .instruction = ENC_INSTRUCTION(IO,    INCARD,   0x2d),      .opcode=IO,    .string = "INCARD 0x2d" },
+  { .instruction = ENC_INSTRUCTION(MUL,   0x00,     0x3e5),     .opcode=MUL,   .string = "MUL 0x3e5" },
+  { .instruction = ENC_INSTRUCTION(SHL,   0x00,     NULL_ADDR), .opcode=SHL,   .string = "SHL" },
+  { .instruction = ENC_INSTRUCTION(STORE, 0x00,     0x30),      .opcode=STORE, .string = "STORE 0x30" },
 };
 
 static int32_t inline string_instruction(char* strbfr, uint32_t instr) {
-  uint16_t address = (uint16_t)GET_ADDRESS(instr);
-  uint8_t opcode = (uint8_t)GET_OPCODE(instr);
+  uint16_t address = (uint16_t)DEC_ADDRESS(instr);
+  uint8_t opcode = (uint8_t)DEC_OPCODE(instr);
   if (strcmp(string_opcode(opcode), "UNDEF") == 0) {
     return -1;
   }
@@ -204,73 +204,73 @@ static void test_instruction_parsing(void) {
       const TestInstruction instr = instr_vectors[i];
       ASSERT(-1 != string_instruction(strbfr, instr.instruction));
       ASSERT_STREQ(strbfr, instr.string);
-      ASSERT_UINT8(instr.opcode, READ_MAJOR_OPCODE(GET_OPCODE(instr.instruction)));
+      ASSERT_UINT8(instr.opcode, READ_MAJOR_OPCODE(DEC_OPCODE(instr.instruction)));
     }
   } /* TEST */
 }
 
 static void test_opcodes(void) {
-  START_TEST("Major opcode shifting"); {
-    ASSERT_UINT32(0x01 << 15, TO_MAJOR_OPCODE(LOAD));
-    ASSERT_UINT32(0x02 << 15, TO_MAJOR_OPCODE(MUL));
-    ASSERT_UINT32(0x03 << 15, TO_MAJOR_OPCODE(DIV));
-    ASSERT_UINT32(0x04 << 15, TO_MAJOR_OPCODE(LDMQ));
-    ASSERT_UINT32(0x05 << 15, TO_MAJOR_OPCODE(SHL));
-    ASSERT_UINT32(0x06 << 15, TO_MAJOR_OPCODE(SHR));
-    ASSERT_UINT32(0x07 << 15, TO_MAJOR_OPCODE(STORE));
-    ASSERT_UINT32(0x08 << 15, TO_MAJOR_OPCODE(BR_L));
-    ASSERT_UINT32(0x09 << 15, TO_MAJOR_OPCODE(BR_R));
-    ASSERT_UINT32(0x0A << 15, TO_MAJOR_OPCODE(CNDBR_L));
-    ASSERT_UINT32(0x0B << 15, TO_MAJOR_OPCODE(CNDBR_R));
-    ASSERT_UINT32(0x0C << 15, TO_MAJOR_OPCODE(MOVE));
-    ASSERT_UINT32(0x0D << 15, TO_MAJOR_OPCODE(AMOD_L));
-    ASSERT_UINT32(0x0E << 15, TO_MAJOR_OPCODE(AMOD_R));
-    ASSERT_UINT32(0x0F << 15, TO_MAJOR_OPCODE(IO));
+  START_TEST("Major opcode encoding"); {
+    ASSERT_UINT32(0x01 << 15, ENC_MAJOR_OPCODE(LOAD));
+    ASSERT_UINT32(0x02 << 15, ENC_MAJOR_OPCODE(MUL));
+    ASSERT_UINT32(0x03 << 15, ENC_MAJOR_OPCODE(DIV));
+    ASSERT_UINT32(0x04 << 15, ENC_MAJOR_OPCODE(LDMQ));
+    ASSERT_UINT32(0x05 << 15, ENC_MAJOR_OPCODE(SHL));
+    ASSERT_UINT32(0x06 << 15, ENC_MAJOR_OPCODE(SHR));
+    ASSERT_UINT32(0x07 << 15, ENC_MAJOR_OPCODE(STORE));
+    ASSERT_UINT32(0x08 << 15, ENC_MAJOR_OPCODE(BR_L));
+    ASSERT_UINT32(0x09 << 15, ENC_MAJOR_OPCODE(BR_R));
+    ASSERT_UINT32(0x0A << 15, ENC_MAJOR_OPCODE(CNDBR_L));
+    ASSERT_UINT32(0x0B << 15, ENC_MAJOR_OPCODE(CNDBR_R));
+    ASSERT_UINT32(0x0C << 15, ENC_MAJOR_OPCODE(MOVE));
+    ASSERT_UINT32(0x0D << 15, ENC_MAJOR_OPCODE(AMOD_L));
+    ASSERT_UINT32(0x0E << 15, ENC_MAJOR_OPCODE(AMOD_R));
+    ASSERT_UINT32(0x0F << 15, ENC_MAJOR_OPCODE(IO));
   }
-  START_TEST("Opcode parsing"); {
-    ASSERT_UINT32(SHL,    GET_MAJOR_OPCODE(TO_MAJOR_OPCODE(SHL)));
-    ASSERT_UINT32(LOAD,   GET_MAJOR_OPCODE(TO_MAJOR_OPCODE(LOAD)));
-    ASSERT_UINT32(MOVE,   GET_MAJOR_OPCODE(TO_MAJOR_OPCODE(MOVE)));
-    ASSERT_UINT32(BR_L,   GET_MAJOR_OPCODE(TO_MAJOR_OPCODE(BR_L)));
-    ASSERT_UINT32(STORE,  GET_MAJOR_OPCODE(TO_MAJOR_OPCODE(STORE)));
-    ASSERT_UINT32(IO,     GET_MAJOR_OPCODE(TO_MAJOR_OPCODE(IO)));
+  START_TEST("Opcode decoding"); {
+    ASSERT_UINT32(SHL,    DEC_MAJOR_OPCODE(ENC_MAJOR_OPCODE(SHL)));
+    ASSERT_UINT32(LOAD,   DEC_MAJOR_OPCODE(ENC_MAJOR_OPCODE(LOAD)));
+    ASSERT_UINT32(MOVE,   DEC_MAJOR_OPCODE(ENC_MAJOR_OPCODE(MOVE)));
+    ASSERT_UINT32(BR_L,   DEC_MAJOR_OPCODE(ENC_MAJOR_OPCODE(BR_L)));
+    ASSERT_UINT32(STORE,  DEC_MAJOR_OPCODE(ENC_MAJOR_OPCODE(STORE)));
+    ASSERT_UINT32(IO,     DEC_MAJOR_OPCODE(ENC_MAJOR_OPCODE(IO)));
 
-    ASSERT_UINT32(MVABS,  GET_MINOR_OPCODE(TO_MINOR_OPCODE(MVABS)));
-    ASSERT_UINT32(LDNEG,  GET_MINOR_OPCODE(TO_MINOR_OPCODE(LDNEG)));
-    ASSERT_UINT32(ADD,    GET_MINOR_OPCODE(TO_MINOR_OPCODE(ADD)));
-    ASSERT_UINT32(ADDMQ,  GET_MINOR_OPCODE(TO_MINOR_OPCODE(ADDMQ)));
-    ASSERT_UINT32(MV,     GET_MINOR_OPCODE(TO_MINOR_OPCODE(MV)));
-    ASSERT_UINT32(INCARD, GET_MINOR_OPCODE(TO_MINOR_OPCODE(INCARD)));
+    ASSERT_UINT32(MVABS,  DEC_MINOR_OPCODE(ENC_MINOR_OPCODE(MVABS)));
+    ASSERT_UINT32(LDNEG,  DEC_MINOR_OPCODE(ENC_MINOR_OPCODE(LDNEG)));
+    ASSERT_UINT32(ADD,    DEC_MINOR_OPCODE(ENC_MINOR_OPCODE(ADD)));
+    ASSERT_UINT32(ADDMQ,  DEC_MINOR_OPCODE(ENC_MINOR_OPCODE(ADDMQ)));
+    ASSERT_UINT32(MV,     DEC_MINOR_OPCODE(ENC_MINOR_OPCODE(MV)));
+    ASSERT_UINT32(INCARD, DEC_MINOR_OPCODE(ENC_MINOR_OPCODE(INCARD)));
   }
-  START_TEST("Minor LOAD opcode shifting"); {
-    ASSERT_UINT32(0x00 << 12, TO_MINOR_OPCODE(LDABS));
-    ASSERT_UINT32(0x01 << 12, TO_MINOR_OPCODE(LD));
-    ASSERT_UINT32(0x02 << 12, TO_MINOR_OPCODE(LDNEG));
-    ASSERT_UINT32(0x03 << 12, TO_MINOR_OPCODE(ADDABS));
-    ASSERT_UINT32(0x04 << 12, TO_MINOR_OPCODE(SUBABS));
-    ASSERT_UINT32(0x05 << 12, TO_MINOR_OPCODE(ADD));
-    ASSERT_UINT32(0x06 << 12, TO_MINOR_OPCODE(SUB));
+  START_TEST("Minor LOAD opcode encoding"); {
+    ASSERT_UINT32(0x00 << 12, ENC_MINOR_OPCODE(LDABS));
+    ASSERT_UINT32(0x01 << 12, ENC_MINOR_OPCODE(LD));
+    ASSERT_UINT32(0x02 << 12, ENC_MINOR_OPCODE(LDNEG));
+    ASSERT_UINT32(0x03 << 12, ENC_MINOR_OPCODE(ADDABS));
+    ASSERT_UINT32(0x04 << 12, ENC_MINOR_OPCODE(SUBABS));
+    ASSERT_UINT32(0x05 << 12, ENC_MINOR_OPCODE(ADD));
+    ASSERT_UINT32(0x06 << 12, ENC_MINOR_OPCODE(SUB));
   }
-  START_TEST("Minor MOVE opcode shifting"); {
-    ASSERT_UINT32(0x00 << 12, TO_MINOR_OPCODE(MVABS));
-    ASSERT_UINT32(0x01 << 12, TO_MINOR_OPCODE(MVNEGABS));
-    ASSERT_UINT32(0x02 << 12, TO_MINOR_OPCODE(MV));
-    ASSERT_UINT32(0x03 << 12, TO_MINOR_OPCODE(MVNEG));
-    ASSERT_UINT32(0x04 << 12, TO_MINOR_OPCODE(ADDMQABS));
-    ASSERT_UINT32(0x05 << 12, TO_MINOR_OPCODE(SUBMQABS));
-    ASSERT_UINT32(0x06 << 12, TO_MINOR_OPCODE(ADDMQ));
-    ASSERT_UINT32(0x07 << 12, TO_MINOR_OPCODE(SUBMQ));
+  START_TEST("Minor MOVE opcode encoding"); {
+    ASSERT_UINT32(0x00 << 12, ENC_MINOR_OPCODE(MVABS));
+    ASSERT_UINT32(0x01 << 12, ENC_MINOR_OPCODE(MVNEGABS));
+    ASSERT_UINT32(0x02 << 12, ENC_MINOR_OPCODE(MV));
+    ASSERT_UINT32(0x03 << 12, ENC_MINOR_OPCODE(MVNEG));
+    ASSERT_UINT32(0x04 << 12, ENC_MINOR_OPCODE(ADDMQABS));
+    ASSERT_UINT32(0x05 << 12, ENC_MINOR_OPCODE(SUBMQABS));
+    ASSERT_UINT32(0x06 << 12, ENC_MINOR_OPCODE(ADDMQ));
+    ASSERT_UINT32(0x07 << 12, ENC_MINOR_OPCODE(SUBMQ));
   }
-  START_TEST("Minor IO opcode shifting"); {
-    ASSERT_UINT32(0x00 << 12, TO_MINOR_OPCODE(INCARD));
-    ASSERT_UINT32(0x01 << 12, TO_MINOR_OPCODE(OUTCARD));
+  START_TEST("Minor IO opcode encoding"); {
+    ASSERT_UINT32(0x00 << 12, ENC_MINOR_OPCODE(INCARD));
+    ASSERT_UINT32(0x01 << 12, ENC_MINOR_OPCODE(OUTCARD));
   }
   START_TEST("Major and minor opcode parsing"); {
-    ASSERT_UINT8(LOAD,     READ_MAJOR_OPCODE(TO_OPCODE(LOAD, LDABS)));
-    ASSERT_UINT8(LDNEG,    READ_MINOR_OPCODE(TO_OPCODE(LOAD, LDNEG)));
-    ASSERT_UINT8(SHL,      READ_MAJOR_OPCODE(TO_OPCODE(SHL, 0x00)));
-    ASSERT_UINT8(MOVE,     READ_MAJOR_OPCODE(TO_OPCODE(MOVE, MVNEGABS)));
-    ASSERT_UINT8(MVNEGABS, READ_MINOR_OPCODE(TO_OPCODE(MOVE, MVNEGABS)));
+    ASSERT_UINT8(LOAD,     READ_MAJOR_OPCODE(ENC_OPCODE(LOAD, LDABS)));
+    ASSERT_UINT8(LDNEG,    READ_MINOR_OPCODE(ENC_OPCODE(LOAD, LDNEG)));
+    ASSERT_UINT8(SHL,      READ_MAJOR_OPCODE(ENC_OPCODE(SHL, 0x00)));
+    ASSERT_UINT8(MOVE,     READ_MAJOR_OPCODE(ENC_OPCODE(MOVE, MVNEGABS)));
+    ASSERT_UINT8(MVNEGABS, READ_MINOR_OPCODE(ENC_OPCODE(MOVE, MVNEGABS)));
   }
 }
 

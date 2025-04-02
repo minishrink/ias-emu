@@ -14,3 +14,4 @@ typedef uint32_t Instruction;
 /* Instructions consist of an 8-bit opcode and a 12-bit address */
 typedef uint16_t Address;
 typedef uint8_t Opcode;
+
