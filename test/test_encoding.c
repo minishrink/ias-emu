@@ -4,7 +4,7 @@
 #include <_assert.h>
 #include <_encoding.h>
 #include <_instructions.h>
-#include <_testmacros.h>
+#include <_macros.h>
 
 static void test_bits(void) {
   START_TEST("Check masks"); {
