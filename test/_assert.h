@@ -1,7 +1,11 @@
 #pragma once
 #include <stdint.h>
 
+#ifdef DEBUG
 #define PRINT_PASS() (printf("\n  \033[92mPASSED\033[0m"))
+#else
+#define PRINT_PASS()
+#endif
 #define PRINT_FAIL() (printf("\n  \033[91mFAILED\033[0m"))
 
 uint32_t _assert(uint32_t _bool);

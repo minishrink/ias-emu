@@ -74,8 +74,13 @@ void inline _assert_uint8(uint8_t x, uint8_t y) {
   ++test_count;
 }
 void inline _print_test_count(uint8_t end) {
+#ifdef DEBUG
   printf("\n\033[1mPassed %3u / %3u\033[0m", pass_count, test_count);
+#endif
   if (end && pass_count < test_count) {
+#ifndef DEBUG
+  printf("\n");
+#endif
     printf(" | \033[1m\033[91m%3u failures\033[0m\n---", test_count-pass_count);
   }
   printf("\n");
@@ -84,5 +89,5 @@ void inline _new_test(const char *_name) {
   if (test_count > 0) {
     _print_test_count(0);
   }
-  printf("\n\033[1m--- %s ---\033[0m\n", _name);
+  printf("\n\033[1m--- %s ---\033[0m", _name);
 }
