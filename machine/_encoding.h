@@ -1,17 +1,14 @@
 #pragma once
 #include <stdint.h>
+#include <_types.h>
 
-#define LAST_N_BITS(_typ, n) (((_typ)1 << n)-1)
+/* These masks work on uint32_t or uint64_t */
+#define MASK_BYTE   (0xFF)
+#define MASK_LO20   (0xFFFFF)            /* 20 = 5 x 4, so 5 nybbles of F */
+/* These masks only work for uint64_t */
+#define MASK_HI20   (0xFFFFF00000000)    /* As above but shifted 4 bytes */
+#define MASK_LO40   (0xFFFFFFFFFF000000) /* 40 = 10 x 4, so 10 nybbles of F */
 
-#define MASK_BYTE   (LAST_N_BITS(uint8_t,   8))
-#define MASK_HIBYTE (LAST_N_BITS(uint64_t,  8) << 56)
-#define MASK_LO20   (LAST_N_BITS(uint32_t, 20))
-#define MASK_HI20   (LAST_N_BITS(uint64_t, 20) << 32)
-#define MASK_LO40   (LAST_N_BITS(uint64_t, 40))
-
-/** longword assumed to be 64 bits **/
-
-#define HIBYTE(_longword) ((_longword & MASK_HIBYTE) >> 56)
 #define LOBYTE(_longword) (_longword & MASK_BYTE)
 #define LO20(_longword)   (_longword & MASK_LO20)
 #define HI20(_longword)   ((_longword & MASK_HI20) >> 32)
@@ -28,11 +25,11 @@
 /* uint32 padding */
 #define ENC_MAJOR_OPCODE(_n) (_n << 15)
 #define ENC_MINOR_OPCODE(_n) (_n << 12)
-/* uint8_t parsing */
+/* uint32_t -> uint8_t parsing */
 #define DEC_MAJOR_OPCODE(_o) ((uint8_t)((_o & MASK_MAJOR_OPCODE) >> 15)) /* From uint32_t */
 #define DEC_MINOR_OPCODE(_o) ((uint8_t)((_o & MASK_MINOR_OPCODE) >> 12))
 
-/** Macros to extract from 40-bit words (stored in uint64_t values) => uint32_t**/
+/** Macros to extract from 40-bit words (stored in uint64_t values) => uint32_t **/
 #define DEC_L_INSTR(_word) (HI20(_word)) /* Bits 39 to 20 */
 #define ENC_L_INSTR(_instr) ((uint64_t)_instr << 32) /* Bits 39 to 20 */
 #define DEC_R_INSTR(_word) (LO20(_word)) /* Bits 19 to  0 */
