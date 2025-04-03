@@ -47,6 +47,7 @@
  * 31------------j----e--b----------0
  * */
 #define NULL_ADDR (0xFFF)
+#define MAX_ADDR (0x3e7)
 
 typedef enum EncodingStatus {
   ENC_OK = 0,

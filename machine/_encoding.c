@@ -41,6 +41,42 @@ EncodingStatus enc_opcode(uint8_t major, uint8_t minor, uint8_t *opcode_bfr) {
   return ENC_OK;
 }
 
+/* Called by other functions */
+static uint8_t inline _addr_valid(uint8_t major, uint16_t addr) {
+  /* Most instructions use the address to search memory
+   * Memory holds 1000 addresses, so valid addr values are 0x0 to 0x3e7
+   * Some instructions do not require an addr field at all
+   * TODO: for security reasons, should these not accept one at all?
+   * Others do not use X as a lookup but instead as, e.g.
+   *   SHL/R: uses X as a shift value. This means stricter bounds: X must be within 40.
+   */
+  switch(major) {
+    case _LDMQ:
+    case _MOVE:
+      /* addr immaterial */
+      return TRUE;
+    case _SHL:
+    case _SHR:
+      /* Shift value must be within 0 to 0x27 */
+      return (addr > 0x27) ? FALSE : TRUE;
+    case _BR_L:
+    case _BR_R:
+    case _CNDBR_L:
+    case _CNDBR_R:
+      /* Branching writes to PC */
+    case _LOAD:
+    case _MUL:
+    case _DIV:
+    case _STORE:
+    case _AMOD_L:
+    case _AMOD_R:
+    case _IO:
+    default:
+      return (addr > MAX_ADDR) ? FALSE : TRUE;
+  }
+  return TRUE;
+}
+
 EncodingStatus enc_instruction(uint8_t major, uint8_t minor, uint16_t addr, Instruction *instr_bfr) {
   if (NULL ==  instr_bfr) {
     return ENC_ERR_MEM;
@@ -51,7 +87,7 @@ EncodingStatus enc_instruction(uint8_t major, uint8_t minor, uint16_t addr, Inst
   else if (minor > (uint8_t)7) {
     return ENC_ERR_OPCODE_MIN;
   }
-  else if (addr > (uint16_t)0x3e7) {
+  else if (!_addr_valid(major, addr)) {
     return ENC_ERR_ADDR;
   }
   switch (major) {
