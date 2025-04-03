@@ -1,4 +1,5 @@
 #pragma once
+#include <_encoding.h>
 
 #define LOAD    (0x01)
 #define MUL     (0x02)
@@ -38,3 +39,7 @@
 /* IO subcodes */
 #define INCARD   (0x00)
 #define OUTCARD  (0x01)
+
+#define PACK_OPCODE(_maj, _min) ((((uint8_t)_maj << 3) | (uint8_t)_min)
+#define READ_MAJOR_OPCODE(_opcode) ((_opcode & ~7)>>3)
+#define READ_MINOR_OPCODE(_opcode) (_opcode & 7)

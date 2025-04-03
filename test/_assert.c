@@ -6,17 +6,17 @@
 uint16_t pass_count = 0u;
 uint16_t test_count = 0u;
 
-uint32_t inline _assert(uint32_t _bool) {
-  if (_bool) {
+uint32_t inline _assert(uint32_t assertion) {
+  if (assertion) {
     PRINT_PASS();
     ++pass_count;
   }
   else {
     PRINT_FAIL();
-    printf(" -- %x", _bool);
+    printf(" -- %x", assertion);
   }
   ++test_count;
-  return _bool;
+  return assertion;
 }
 void inline _assert_streq(const char *x, const char *y) {
   if (strcmp(x,y) == 0) {

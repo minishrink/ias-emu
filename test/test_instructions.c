@@ -6,150 +6,37 @@
 #include <_encoding.h>
 #include <_macros.h>
 
-#define READ_MAJOR_OPCODE(_o) ((_o & 0xF8)>>3)  /* From uint8_t */
-#define READ_MINOR_OPCODE(_o) (_o & 7)  /* From uint8_t */
-
-static inline const char* string_opcode_load(uint8_t o) {
-  //printf("\nLOAD INSTRUCTION IDENTIFIED... PARSING SUBCODE...");
-  switch(READ_MINOR_OPCODE(o)) {
-    case LDABS:
-      return "LDABS";
-    case LD:
-      return "LD";
-    case LDNEG:
-      return "LDNEG";
-    case ADDABS:
-      return "ADDABS";
-    case SUBABS:
-      return "SUBABS";
-    case ADD:
-      return "ADD";
-    case SUB:
-      return "SUB";
-    default:
-      return "UNDEF";
-  } /* LOAD subswitch */
-}
-
-static inline const char* string_opcode_move(uint8_t o) {
-  /* MOVE subcodes */
-  //printf("\nMOVE INSTRUCTION IDENTIFIED... PARSING SUBCODE...");
-  switch(READ_MINOR_OPCODE(o)) {
-    case MVABS:
-      return "MVABS";
-    case MVNEGABS:
-      return "MVNEGABS";
-    case MV:
-      return "MV";
-    case MVNEG:
-      return "MVNEG";
-    case ADDMQABS:
-      return "ADDMQABS";
-    case SUBMQABS:
-      return "SUBMQABS";
-    case ADDMQ:
-      return "ADDMQ";
-    case SUBMQ:
-      return "SUBMQ";
-    default:
-      return "UNDEF";
-  }
-}
-
-static inline const char* string_opcode_io(uint8_t o) {
-  //printf("\nIO INSTRUCTION IDENTIFIED... PARSING SUBCODE...");
-  switch(READ_MINOR_OPCODE(o)) {
-    case INCARD:
-      return "INCARD";
-    case OUTCARD:
-      return "OUTCARD";
-    default:
-      return "UNDEF";
-  }
-  return "UNDEF";
-}
-
-const char* string_opcode(uint8_t o) {
-  switch (READ_MAJOR_OPCODE(o)) {
-    case MUL:
-      return "MUL";
-    case DIV:
-      return "DIV";
-    case LDMQ:
-      return "LDMQ";
-    case SHL:
-      return "SHL";
-    case SHR:
-      return "SHR";
-    case STORE:
-      return "STORE";
-    case BR_L:
-      return "BR_L";
-    case BR_R:
-      return "BR_R";
-    case CNDBR_L:
-      return "CNDBR_L";
-    case CNDBR_R:
-      return "CNDBR_R";
-    case AMOD_L:
-      return "AMOD_L";
-    case AMOD_R:
-      return "AMOD_R";
-    case LOAD:
-      return string_opcode_load(o);
-    case MOVE:
-      return string_opcode_move(o);
-    case IO:
-      return string_opcode_io(o);
-    default:
-      return "UNDEF";
-  }
-  return "UNDEF";
-}
-
-
 /* Addresses range from 0 to 0x3e7 */
 typedef struct TestVector {
-  uint32_t instruction;
-  uint8_t  opcode;
-  const char* string;
+  uint8_t  op_major;
+  uint8_t  op_minor;
+  uint16_t addr;
+  uint32_t enc;
 } TestInstruction;
 
 #define NUM_TV (6U)
 static const TestInstruction instr_vectors[] = {
-  { .instruction = ENC_INSTRUCTION(LOAD,  LD,       0x42),      .opcode=LOAD,  .string = "LD 0x42" },
-  { .instruction = ENC_INSTRUCTION(MOVE,  MVNEGABS, 0x2d),      .opcode=MOVE,  .string = "MVNEGABS 0x2d" },
-  { .instruction = ENC_INSTRUCTION(IO,    INCARD,   0x2d),      .opcode=IO,    .string = "INCARD 0x2d" },
-  { .instruction = ENC_INSTRUCTION(MUL,   0x00,     0x3e5),     .opcode=MUL,   .string = "MUL 0x3e5" },
-  { .instruction = ENC_INSTRUCTION(SHL,   0x00,     NULL_ADDR), .opcode=SHL,   .string = "SHL" },
-  { .instruction = ENC_INSTRUCTION(STORE, 0x00,     0x30),      .opcode=STORE, .string = "STORE 0x30" },
+  { .op_major=LOAD,  .op_minor=LD,       .addr=0x42, .enc=0x9042},
+  { .op_major=MOVE,  .op_minor=MVNEGABS, .addr=0x2d, .enc=0x6102d}, /* 12 << 3 => 96 or 0x60. 0x60 | 1 => 0x61 << 12 */
+  { .op_major=IO,    .op_minor=INCARD,   .addr=0x04, .enc=0x78004}, /* 0xf << 3 => 120 or 0x78. 0x58000 | 0x04 */
+  { .op_major=MUL,   .op_minor=0x00,     .addr=0x3e5, .enc=0x103e5}, /* 0x2 << 3 => 0x10. 0x10 << 12  => 0x10000 */
+  { .op_major=SHL,   .op_minor=0x00,     .addr=0x20, .enc=0x28020}, /* 0x5 << 3 => 0x28020 */
+  { .op_major=STORE, .op_minor=0x00,     .addr=0x30, .enc=0x38030}, /* 0x07 << 3 => 0x38030 */
 };
 
-static int32_t inline string_instruction(char* strbfr, uint32_t instr) {
-  uint16_t address = (uint16_t)DEC_ADDRESS(instr);
-  uint8_t opcode = (uint8_t)DEC_OPCODE(instr);
-  if (strcmp(string_opcode(opcode), "UNDEF") == 0) {
-    return -1;
-  }
-  if (NULL_ADDR != address) {
-    return snprintf(strbfr, (8 + 1 + 2 + 3 + 1), "%s 0x%x", string_opcode(opcode), address);
-  } else {
-    return snprintf(strbfr, (8 + 1), "%s", string_opcode(opcode));
-  }
-}
-
 static void test_instruction_parsing(void) {
-  char strbfr[14] = {};
-  START_TEST("Instruction opcodes printing"); {
+  START_TEST("Instruction encoding"); {
     for (uint32_t i = 0; i < NUM_TV; ++i) {
       const TestInstruction instr = instr_vectors[i];
-      ASSERT(-1 != string_instruction(strbfr, instr.instruction));
-      ASSERT_STREQ(strbfr, instr.string);
-      ASSERT_UINT8(instr.opcode, READ_MAJOR_OPCODE(DEC_OPCODE(instr.instruction)));
+      uint32_t encoded_instr = 0xFFFFFFFF;
+      EncodingStatus err = enc_instruction(instr.op_major, instr.op_minor, instr.addr, &encoded_instr);
+      ASSERT_UINT8(ENC_OK, err);
+      ASSERT_UINT32(instr.enc, encoded_instr);
+      ASSERT_UINT8(instr.op_major, READ_MAJOR_OPCODE(DEC_OPCODE(encoded_instr)));
+      ASSERT_UINT8(instr.op_minor, READ_MINOR_OPCODE(DEC_OPCODE(encoded_instr)));
     }
   } /* TEST */
 }
-
 static void test_opcodes(void) {
   START_TEST("Major opcode encoding"); {
     ASSERT_UINT32(0x01 << 15, ENC_MAJOR_OPCODE(LOAD));
