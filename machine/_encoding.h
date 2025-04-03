@@ -48,3 +48,19 @@
  * */
 #define NULL_ADDR (0xFFF)
 
+typedef enum EncodingStatus {
+  ENC_OK = 0,
+  ENC_ERR_MEM,
+  ENC_ERR_OPCODE_MAJ,
+  ENC_ERR_OPCODE_MIN,
+  ENC_ERR_ADDR,
+  ENC_ERR_INSTR,
+  ENC_ERR_WORD,
+  ENC_ERR_PADDING,
+  ENC_ERR_UNKNOWN
+} EncodingStatus;
+
+const char* enc_err_sprintf(EncodingStatus e);
+EncodingStatus enc_instruction_pair(Instruction l, Instruction r, Word *word_bfr);
+EncodingStatus enc_instruction(uint8_t major, uint8_t minor, uint16_t addr, Instruction *instr_bfr);
+EncodingStatus enc_opcode(uint8_t major, uint8_t minor, uint8_t *opcode_bfr);

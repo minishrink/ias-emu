@@ -19,13 +19,13 @@ build_test_instr:
 test_instr: build_test_instr
 	$(BIN)/$(EXEC)
 
-build_test_bits:
-	$(CC) $(CFLAGS) $(INCLUDES) $(TST)/test_encoding.c -o $(BIN)/$(EXEC)
+build_test_enc:
+	$(CC) $(CFLAGS) $(INCLUDES) $(MAC)/_*.c $(TST)/test_encoding.c -o $(BIN)/$(EXEC)
 
-test_bits: build_test_bits
+test_enc: build_test_enc
 	$(BIN)/$(EXEC)
 
-test: test_instr test_bits
+test: test_instr test_enc
 
 $(OBJ)/%.o: $(SRC)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
